@@ -1,0 +1,164 @@
+@import (reference) 'lib/colors.less';
+@import (reference) 'lib/helpers.less';
+#events {
+	padding-bottom: 6em;
+	.band {
+		@border-thickness: 3px;
+		width: fit-content;
+		position: sticky;
+		left: 0;
+		top: 100px;
+		transform: translateX(-100%);
+		padding: 0.5em 1em;
+		font-family: 'Montserrat';
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		animation-name: pardesi;
+		animation-duration: 10s;
+		animation-iteration-count: 1;
+		animation-fill-mode: forwards;
+		animation-play-state: paused;
+		z-index: 6;
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: -@border-thickness;
+			left: 0;
+			z-index: -2;
+
+			width: calc(100% + @border-thickness);
+			height: calc(100% + 2 * @border-thickness);
+			background-image: linear-gradient(
+				to bottom right,
+				@accent-green,
+				@accent-blue
+			);
+			clip-path: polygon(
+				0 0,
+				calc(100% - 1em) 0,
+				100% 50%,
+				calc(100% - 1em) 100%,
+				0 100%
+			);
+		}
+		&::before {
+			content: '';
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			background: black;
+			z-index: -1;
+
+			clip-path: polygon(
+				0 0,
+				calc(100% - 1em) 0,
+				100% 50%,
+				calc(100% - 1em) 100%,
+				0 100%
+			);
+		}
+
+		&.active {
+			animation-play-state: running;
+		}
+		@keyframes pardesi {
+			0% {
+				transform: translateX(calc(-100% - @border-thickness));
+			}
+			15% {
+				transform: translateX(calc(-100% - @border-thickness));
+			}
+			20% {
+				transform: translateX(0);
+			}
+			40% {
+				transform: translateX(0);
+			}
+			45% {
+				transform: translateX(calc(-100% - @border-thickness));
+			}
+			100% {
+				transform: translateX(calc(-100% - @border-thickness));
+			}
+		}
+	}
+
+	.card-holder {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+
+		padding-top: 1em;
+
+		@card-width: 330px;
+		.card {
+			.no-select();
+			perspective: 1000px;
+			background: transparent;
+			box-shadow: 0 14px 22px rgba(0, 0, 0, 0.24);
+			width: @card-width;
+			height: 500px;
+			margin: 15px;
+			cursor: pointer;
+
+			* {
+				pointer-events: none;
+			}
+
+			.inner {
+				position: relative;
+				width: 100%;
+				height: 100%;
+				transition: transform 0.5s;
+				transform-style: preserve-3d;
+
+				.front,
+				.back {
+					text-align: justify;
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					backface-visibility: hidden;
+					background-color: @darker;
+					border: 3px solid transparent;
+					border-image: linear-gradient(
+						to bottom right,
+						@accent-green,
+						@accent-blue
+					);
+					border-image-slice: 1;
+					display: flex;
+					flex-direction: column;
+					align-content: center;
+					justify-content: center;
+				}
+
+				.front {
+					img {
+						width: 80%;
+						height: @card-width;
+					}
+					h3 {
+						font-family: 'Righteous', sans-serif;
+						font-size: 21px;
+						padding: 0.9em;
+						font-weight: unset;
+					}
+				}
+
+				.back {
+					transform: rotateY(180deg);
+					padding: 1em;
+				}
+			}
+
+			&.turned .inner {
+				transform: rotateY(-180deg);
+			}
+			transition: transform 0.1s;
+		}
+	}
+}
