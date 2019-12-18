@@ -1,0 +1,14 @@
+-
+	var options = [
+		{text:'events',   toggles:'events'},
+		{text:'home',     toggles:'home'},
+		{text:'about us', toggles:'about-us'},
+		{text:'register', toggles:'register'},
+		//{text:'sponsors', toggles:'sponsors'},
+	]
+
+header
+	#navbar
+		each option in options 
+			span.tab(data-toggles=option.toggles)= option.text
+
