@@ -6,6 +6,11 @@ var Email = require('email-templates');
 var path = require('path');
 var config = require('./config')
 
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+mongoose.set('useUnifiedTopology', true);
+
 //leader mail extraction
 function search(nameKey, myArray){
     for (var i=0; i < myArray.length; i++) {
@@ -39,6 +44,7 @@ const email = new Email({
 //loading models
 var User = require('./models/user');
 var Team = require('./models/team');
+var Event = require('./models/event');
 
 //hosting the front end
 var app = new express();
@@ -121,41 +127,57 @@ app.post('/regTeam',(req,res)=>{
             var leadMail;
             var tid;
             if(docs.length == memArray.length){
-                leaderDoc = search(recieved_data.team_leader_id,docs);
-                leadMail = leaderDoc.email;
-                tid;leaderDoc = search(recieved_data.team_leader_id,docs);
-                leadMail = leaderDoc.email;
-                tid;
-                var data = {
-                    name : recieved_data.team_name,
-                    leader :recieved_data.team_leader_id,
-                    members : memArray,
-                    event : recieved_data.event
-                }
-                team = new Team(data)
-            
-                team.save()
-                .then((item)=>{
-                    //res.send("your Team_id is "+item._id);
-                    res.render('teamRegister',{title:"Team Registration", id:item._id, name:item.name});
-                    tid =item._id;
-                    console.log(item);
-                    console.log('leader : '+leaderDoc);
+                Event.findOne({'name':recieved_data.event},(err,doc)=>{
+                    var participants = doc != null?doc.participants: [];
+                    var participationFlag = memArray.some((val)=>participants.indexOf(val)!=-1)
+                    if(participationFlag == true){
+                        res.render('error',{title:"Error",message:"Some of the members Have alredy registered for this event"});
+                    }
+                    else{
+                        leaderDoc = search(recieved_data.team_leader_id,docs);
+                        leadMail = leaderDoc.email;
+                        tid;leaderDoc = search(recieved_data.team_leader_id,docs);
+                        leadMail = leaderDoc.email;
+                        tid;
+                        var data = {
+                            name : recieved_data.team_name,
+                            leader :recieved_data.team_leader_id,
+                            members : memArray,
+                            event : recieved_data.event
+                        }
+                        team = new Team(data)
+                    
+                        team.save()
+                        .then((item)=>{
+                            //res.send("your Team_id is "+item._id);
+                            res.render('teamRegister',{title:"Team Registration", id:item._id, name:item.name});
+                            tid =item._id;
+                            console.log(item);
+                            console.log('leader : '+leaderDoc);
+                        })
+                        .then(()=>{
+                            Event.findOneAndUpdate({'name': data.event},{$push:{'participants': memArray}},{new : true,upsert : true},(err,docs)=>{
+                                if(err){
+                                    console.log(err);
+                                }
+                            });
+                        })
+                        .then(()=>{
+                            email.send({
+                                template: path.join(__dirname,'emails','team'),
+                                message: {
+                                    to: leadMail
+                                },
+                                locals: {
+                                    Tid: tid,
+                                    Tname: data.name,
+                                }
+                            })
+                        })
+                        .then(()=>console.log("email sent"))
+                        .catch(err=>console.log(err));
+                    }
                 })
-                .then(()=>{
-                    email.send({
-                        template: path.join(__dirname,'emails','team'),
-                        message: {
-                            to: leadMail
-                            },
-                            locals: {
-                                Tid: tid,
-                                Tname: data.name,
-                            }
-                    })
-                })
-                .then(()=>console.log("email sent"))
-                .catch(err=>console.log(err));
             }
             else{
                 // res.send("Invalid Ids entered")
