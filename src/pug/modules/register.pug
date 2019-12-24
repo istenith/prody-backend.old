@@ -1,41 +1,42 @@
-form(class="holder" method="POST" action="/regPlayer")
+form(action="/regPlayer" method="POST" class="holder")
     .regPlayer
-        h1 Register Yourself
-        .lable Name
-        .textbox
-            input(type="text" id="player_name" name="name" required placeholder="Full Name")
+        h1(class="header1" data-text="Register Yourself") Register Yourself
+        fieldset
+            legend Full Name
+            input(type="text" id="player_name" name="name")
+        
+        fieldset
+            legend Your Phone Number
+            input(type="text" id="player_phone" name="phone")
 
-        .lable Phone Number
-        .textbox
-            input(type="input" id="player_phone" name="phone" required placeholder="Phone Number")
-
-        .lable Email
-        .textbox
-            input(type="email" id="player_email" name="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required placeholder="Your Email")
+        fieldset
+            legend Your Email
+            input(type="email" id="player_email" name="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$")
         .submit
             input(class="btn" type="submit" value="Submit!")
+        .hr
 
 form(class="holder" id="regTeam" onsubmit="event.preventDefault(); validate();" method="POST" action="/regTeam")
     .regTeam
-        h1 Register Your Team
-        .lable Team Name
-        .textbox
-            input(type="text" id="team_name" required name="team_name" placeholder="Name of your team")
-        .lable#teamLeader Team Leader Id
-        .textbox.team_leader
-            input(type="text" id="team_leader_id" required name="team_leader_id" placeholder="Id of team leader")
-        //- .textbox.team_leader
-        //-     input(type="text" id="team_leader_email" name="team_leader_email" placeholder="Email")
-        .lable Event
-        - var limit
-        .textbox
-            select(id="select" name="event" onChange="handleSelectChange()")
-                each event in eventList
-                    - limit = event.team_limit
-                    option(value = event.title name=event.title id=event.team_limit)=event.title 
-                    //value->title                                    id->limit
-        .lable Team Members
-        div(class='lable' id='limit_lable') 
+        h1(class="header2" data-text="Register Your Team") Register Your Team
+        fieldset
+            legend Team Name
+            input(type="text" id="team_name" required name="team_name")
+        #teamLeader
+        fieldset
+            legend ID of Team Leader
+            .team_leader
+                input(type="text" id="team_leader_id" required name="team_leader_id")
+        .eventselect
+            .lable Event
+            -var limit
+                select(id="select" name="event" onChange="handleSelectChange()")
+                    each event in eventList
+                        - limit = event.team_limit
+                        option(value = event.title name=event.title id=event.team_limit)=event.title 
+                        //value->title                                    id->limit
+            .lable#teamlable Team Members-
+                label(for="teamlable" id="limit_lable" class="lable")
   
     .regMembers
 
@@ -43,12 +44,11 @@ form(class="holder" id="regTeam" onsubmit="event.preventDefault(); validate();" 
 
         each member in members
             .clear
-                .lable Member #{member}
-                .textbox
-                    input(type="text" name="team_member_"+member placeholder="Id of member"+member)
-                //- .textbox
-                //-     input(type="text" name="team_member_"+member+"_email" placeholder="Email")
+                #member
+                fieldset
+                    legend ID of Member #{member}
+                    input(type="text" name="team_member_"+member)
         
-    
     .submit
             input(class="btn" type="submit" value="Submit!")
+    .hr
