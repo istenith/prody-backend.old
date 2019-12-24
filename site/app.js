@@ -12,8 +12,8 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
 //leader mail extraction
-function search(nameKey, myArray){
-    for (var i=0; i < myArray.length; i++) {
+function search(nameKey, myArray) {
+    for (var i = 0; i < myArray.length; i++) {
         if (myArray[i]._id === nameKey) {
             return myArray[i];
         }
@@ -26,14 +26,14 @@ var transporter = nodemailer.createTransport({
     secure: true,
     service: 'gmail',
     auth: {
-           user: config.email,
-           pass: config.pw
-       }
+        user: config.email,
+        pass: config.pw
+    }
 });
 //Email Template
 const email = new Email({
     message: {
-      from: 'Team ISTE'
+        from: 'Team ISTE'
     },
     // uncomment below to send emails in development/test env:
     send: true,
@@ -51,142 +51,142 @@ var app = new express();
 var port = 3000;
 
 //coneectiong to backend
-mongoose.connect('mongodb://localhost/myDb', {useNewUrlParser: true});
+mongoose.connect('mongodb://localhost/myDb', { useNewUrlParser: true });
 
 var db = mongoose.connection;
-db.on('error',()=>console.log('error connecting to the database!'))
-.once('open',()=>console.log('connected to the database'));
+db.on('error', () => console.log('error connecting to the database!'))
+    .once('open', () => console.log('connected to the database'));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.set('view engine', 'pug')
 
-app.post('/regPlayer',(req,res)=>{
+app.post('/regPlayer', (req, res) => {
     var data = new User(req.body);
     var mailid;
     //////validation code
 
-    User.findOne({'email':data.email},(err,result)=>{
-        if(result == null){
+    User.findOne({ 'email': data.email }, (err, result) => {
+        if (result == null) {
             data.save()
-            .then((item)=>{
-            mailid = item._id;
-            res.render('register',{title: "User Registration", id: item._id});
-            console.log(item);
-            })
-            .then(()=>{
-                email.send({
-                    template: path.join(__dirname,'emails','user'),
-                    message: {
-                        to: data.email
+                .then((item) => {
+                    mailid = item._id;
+                    res.render('register', { title: "User Registration", id: item._id });
+                    console.log(item);
+                })
+                .then(() => {
+                    email.send({
+                        template: path.join(__dirname, 'emails', 'user'),
+                        message: {
+                            to: data.email
                         },
                         locals: {
                             id: mailid,
                             name: data.name,
                         }
+                    })
                 })
-            })
-            .then(()=>console.log("email sent"))
-            .catch(err=>console.log(err));
+                .then(() => console.log("email sent"))
+                .catch(err => console.log(err));
         }
-        else{
+        else {
             //res.send("The email has already been registered");
-            res.render('error',{title:"Error",message:"The email has already been registered"})
+            res.render('error', { title: "Error", message: "The email has already been registered" })
         }
     })
 });
 
-app.post('/regTeam',(req,res)=>{
+app.post('/regTeam', (req, res) => {
     var recieved_data = req.body;
-    var memArray = [recieved_data.team_member_2, recieved_data.team_member_3, recieved_data.team_member_4 ,recieved_data.team_member_5]
+    var memArray = [recieved_data.team_member_2, recieved_data.team_member_3, recieved_data.team_member_4, recieved_data.team_member_5]
 
-    for( var i = 0; i < memArray.length; i++){ 
-        if ( memArray[i] === '') {
-          memArray.splice(i, 1); 
-          i--;
+    for (var i = 0; i < memArray.length; i++) {
+        if (memArray[i] === '') {
+            memArray.splice(i, 1);
+            i--;
         }
     }
     memArray.push(recieved_data.team_leader_id);
 
     var duplicateFlag = false;
 
-    for(var i=0;i<memArray.length;i++){
-        for(var j=i+1;j<memArray.length;j++){
-            if(memArray[i]==memArray[j]){
+    for (var i = 0; i < memArray.length; i++) {
+        for (var j = i + 1; j < memArray.length; j++) {
+            if (memArray[i] == memArray[j]) {
                 duplicateFlag = true;
                 break;
             }
         }
     }
 
-    if(duplicateFlag == false){
-        User.find({'_id':{$in:memArray}},(err,docs)=>{
+    if (duplicateFlag == false) {
+        User.find({ '_id': { $in: memArray } }, (err, docs) => {
             var leaderDoc;
             var leadMail;
             var tid;
-            if(docs.length == memArray.length){
-                Event.findOne({'name':recieved_data.event},(err,doc)=>{
-                    var participants = doc != null?doc.participants: [];
-                    var participationFlag = memArray.some((val)=>participants.indexOf(val)!=-1)
-                    if(participationFlag == true){
-                        res.render('error',{title:"Error",message:"Some of the members Have alredy registered for this event"});
+            if (docs.length == memArray.length) {
+                Event.findOne({ 'name': recieved_data.event }, (err, doc) => {
+                    var participants = doc != null ? doc.participants : [];
+                    var participationFlag = memArray.some((val) => participants.indexOf(val) != -1)
+                    if (participationFlag == true) {
+                        res.render('error', { title: "Error", message: "Some of the members Have alredy registered for this event" });
                     }
-                    else{
-                        leaderDoc = search(recieved_data.team_leader_id,docs);
+                    else {
+                        leaderDoc = search(recieved_data.team_leader_id, docs);
                         leadMail = leaderDoc.email;
-                        tid;leaderDoc = search(recieved_data.team_leader_id,docs);
+                        tid; leaderDoc = search(recieved_data.team_leader_id, docs);
                         leadMail = leaderDoc.email;
                         tid;
                         var data = {
-                            name : recieved_data.team_name,
-                            leader :recieved_data.team_leader_id,
-                            members : memArray,
-                            event : recieved_data.event
+                            name: recieved_data.team_name,
+                            leader: recieved_data.team_leader_id,
+                            members: memArray,
+                            event: recieved_data.event
                         }
                         team = new Team(data)
-                    
+
                         team.save()
-                        .then((item)=>{
-                            //res.send("your Team_id is "+item._id);
-                            res.render('teamRegister',{title:"Team Registration", id:item._id, name:item.name});
-                            tid =item._id;
-                            console.log(item);
-                            console.log('leader : '+leaderDoc);
-                        })
-                        .then(()=>{
-                            Event.findOneAndUpdate({'name': data.event},{$push:{'participants': memArray}},{new : true,upsert : true},(err,docs)=>{
-                                if(err){
-                                    console.log(err);
-                                }
-                            });
-                        })
-                        .then(()=>{
-                            email.send({
-                                template: path.join(__dirname,'emails','team'),
-                                message: {
-                                    to: leadMail
-                                },
-                                locals: {
-                                    Tid: tid,
-                                    Tname: data.name,
-                                }
+                            .then((item) => {
+                                //res.send("your Team_id is "+item._id);
+                                res.render('teamRegister', { title: "Team Registration", id: item._id, name: item.name });
+                                tid = item._id;
+                                console.log(item);
+                                console.log('leader : ' + leaderDoc);
                             })
-                        })
-                        .then(()=>console.log("email sent"))
-                        .catch(err=>console.log(err));
+                            .then(() => {
+                                Event.findOneAndUpdate({ 'name': data.event }, { $push: { 'participants': memArray } }, { new: true, upsert: true }, (err, docs) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                });
+                            })
+                            .then(() => {
+                                email.send({
+                                    template: path.join(__dirname, 'emails', 'team'),
+                                    message: {
+                                        to: leadMail
+                                    },
+                                    locals: {
+                                        Tid: tid,
+                                        Tname: data.name,
+                                    }
+                                })
+                            })
+                            .then(() => console.log("email sent"))
+                            .catch(err => console.log(err));
                     }
                 })
             }
-            else{
+            else {
                 // res.send("Invalid Ids entered")
-                res.render('error',{title:"Error",message:"Invalid Ids entered"});
+                res.render('error', { title: "Error", message: "Invalid Ids entered" });
             }
         })
-    }else{
+    } else {
         // res.send('Duplicate Ids have been entered')
-        res.render('error',{title:"Error",message:"Duplicate Ids have been entered"});
+        res.render('error', { title: "Error", message: "Duplicate Ids have been entered" });
     }
 });
 
