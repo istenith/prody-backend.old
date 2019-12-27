@@ -8,7 +8,8 @@ var userScheema = new mongoose.Schema({
     },
     name : String,
     phone : Number,
-    email : String
+    email : String,
+    pw : String
 },{versionKey : false});
 
 var User = new mongoose.model('user',userScheema);
