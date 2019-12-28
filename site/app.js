@@ -187,7 +187,20 @@ app.post('/joinTeam', (req, res) => {
                                         eventDoc.participants.push(userDoc._id);
                                         teamDoc.save();
                                         eventDoc.save();
-                                        res.render('joinTeam', { title: "Done!", team:teamDoc.name })
+                                        res.render('joinTeam', { title: "Done!", team:teamDoc.name });
+                                        User.findOne({'id':teamDoc.members[0].email},(err,lead)=>{
+                                            email.send({
+                                                template: path.join(__dirname, 'emails', 'memberJoin'),
+                                                message: {
+                                                    to: lead.email
+                                                },
+                                                locals: {
+                                                    team:teamDoc.name,
+                                                    member:userDoc.name,
+                                                    event:teamDoc.event
+                                                }
+                                            })
+                                        })
                                     } else {
                                         res.render('error', { title: "Error", message: "Max number of members reached" });
                                     }
