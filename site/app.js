@@ -187,7 +187,7 @@ app.post('/joinTeam', (req, res) => {
                                         eventDoc.participants.push(userDoc._id);
                                         teamDoc.save();
                                         eventDoc.save();
-                                        res.render('error', { title: "Error", message: "Congratulations You have now joined the team" })
+                                        res.render('joinTeam', { title: "Done!", team:teamDoc.name })
                                     } else {
                                         res.render('error', { title: "Error", message: "Max number of members reached" });
                                     }
