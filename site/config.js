@@ -1,6 +1,6 @@
 var credentials = {
-    email: 'teamiste@hgmail.com',
-    pw : 'everythingisplannedISTE'
+    email: 'parthpant4@gmail.com',
+    pw : 'lucknow14'
 }
 
 module.exports = credentials;

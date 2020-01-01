@@ -7,9 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon -L app.js"
   },
-  "author": "",
+  "author": "Parth Pant",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^3.0.7",
     "body-parser": "^1.19.0",
     "email-templates": "^6.0.6",
     "express": "^4.17.1",

@@ -1,5 +1,0 @@
-{
-	"watchFolder" : "src/less",
-	"outputFolder" : "site/public/styles",
-	"minified": true
-}
