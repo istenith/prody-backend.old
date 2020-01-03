@@ -116,7 +116,7 @@ app.post('/regPlayer', (req, res) => {
 
 app.post('/regTeam', (req, res) => {
     var recieved_data = req.body;
-    console.log(recieved_data)
+    //console.log(recieved_data)
     var data = {
         name: recieved_data.team_name,
         event: recieved_data.event,
