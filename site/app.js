@@ -72,30 +72,36 @@ app.post('/regPlayer', (req, res) => {
 
     //////validation code
     User.findOne({ 'email': data.email }, (err, result) => {
-        if (result == null) {
+        if(err){
+            console.log(err);
+        }
+        else if (result == null) {
             if (req.body.pw == req.body.confpw) {
                 bcrypt.hash(data.pw, 10, (err, hash) => {
-                    data.pw = hash;
-                    data.save()
-                        .then((item) => {
-                            mailid = item._id;
-                            res.render('register', { title: "User Registration", id: item._id });
-                            console.log(item);
-                        })
-                        .then(() => {
-                            email.send({
-                                template: path.join(__dirname, 'emails', 'user'),
-                                message: {
-                                    to: data.email
-                                },
-                                locals: {
-                                    id: mailid,
-                                    name: data.name,
-                                }
-                            });
-                        })
-                        .then(() => console.log("email sent"))
-                        .catch(err => console.log(err));
+                    if(err){console.log(err)}
+                    else{
+                        data.pw = hash;
+                        data.save()
+                            .then((item) => {
+                                mailid = item._id;
+                                res.render('register', { title: "User Registration", id: item._id });
+                                console.log(item);
+                            })
+                            .then(() => {
+                                email.send({
+                                    template: path.join(__dirname, 'emails', 'user'),
+                                    message: {
+                                        to: data.email
+                                    },
+                                    locals: {
+                                        id: mailid,
+                                        name: data.name,
+                                    }
+                                });
+                            })
+                            .then(() => console.log("email sent"))
+                            .catch(err => console.log(err));
+                    }
                 })
             } else {
                 res.render('error', { title: "Error", message: "password and conformation password must be the same" })
@@ -110,7 +116,7 @@ app.post('/regPlayer', (req, res) => {
 
 app.post('/regTeam', (req, res) => {
     var recieved_data = req.body;
-    console.log(recieved_data)
+    //console.log(recieved_data)
     var data = {
         name: recieved_data.team_name,
         event: recieved_data.event,
@@ -118,15 +124,25 @@ app.post('/regTeam', (req, res) => {
         members: []
     }
     User.findOne({ 'email': recieved_data.team_leader_email }, (err, userDoc) => {
-        if (userDoc == null) {
+        if(err){
+            consolse.log(err);
+        }
+        else if (userDoc == null) {
             res.render('error', { title: "Error", message: "The team leader email is not registered" })
-        } else {
+        } 
+        else {
             bcrypt.compare(recieved_data.leader_pw, userDoc.pw, (err, resp) => {
-                if (resp) {
+                if(err){
+                    console.log(err);
+                }
+                else if (resp) {
                     Event.findOne({ 'name': recieved_data.event }, (err, doc) => {
                         var participants = doc != null ? doc.participants : [];
                         var participationFlag = participants.includes(userDoc.id);
-                        if (participationFlag == true) {
+                        if(err){
+                            console.log(err);
+                        }
+                        else if (participationFlag == true) {
                             res.render('error', { title: "Error", message: "Team leader has already registered for this event" });
                         }
                         else {
@@ -146,6 +162,8 @@ app.post('/regTeam', (req, res) => {
                                         Tname: data.name,
                                     }
                                 })
+                                .then(() => console.log("email sent"))
+                                .catch(err => console.log(err));
                             })
                             Event.findOneAndUpdate({ 'name': data.event }, { $push: { 'participants': userDoc._id } }, { new: true, upsert: true }, (err, docs) => {
                                 if (err) {
@@ -160,6 +178,7 @@ app.post('/regTeam', (req, res) => {
                 }
             })
         }
+        
     })
 });
 
@@ -167,20 +186,32 @@ app.post('/joinTeam', (req, res) => {
     var recieved_data = req.body;
 
     User.findOne({ 'email': recieved_data.email }, (err, userDoc) => {
-        if (userDoc == null) {
+        if(err){
+            console.log(err);
+        }
+        else if (userDoc == null) {
             res.render('error', { title: "Error", message: "This email is not registered" })
         }
         else {
             bcrypt.compare(recieved_data.pw, userDoc.pw, (err, resp) => {
-                if (resp) {
+                if(err){
+                    console.log(err);
+                }
+                else if (resp) {
                     Team.findOne({ '_id': recieved_data.team_id }, (err, teamDoc) => {
-                        if (teamDoc != null) {
+                        if(err){
+                            console.log(err);
+                        }
+                        else if (teamDoc != null) {
                             var event = teamDoc.event;
                             var limit = teamDoc.team_limit;
                             Event.findOne({ 'name': event }, (err, eventDoc) => {
                                 var participants = eventDoc != null ? eventDoc.participants : [];
                                 var participationFlag = participants.includes(userDoc.id);
-                                if (participationFlag == true) {
+                                if(err){
+                                    console.log(err)
+                                }
+                                else if (participationFlag == true) {
                                     res.render('error', { title: "Error", message: "You have already registered for this event" });
                                 }
                                 else {
@@ -202,6 +233,8 @@ app.post('/joinTeam', (req, res) => {
                                                     event:teamDoc.event
                                                 }
                                             })
+                                            .then(() => console.log("email sent"))
+                                            .catch(err => console.log(err));
                                         })
                                     } else {
                                         res.render('error', { title: "Error", message: "Max number of members reached" });
