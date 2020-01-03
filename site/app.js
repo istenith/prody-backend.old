@@ -6,6 +6,8 @@ var Email = require('email-templates');
 var path = require('path');
 var config = require('./config');
 var bcrypt = require('bcrypt');
+var https = require("https");
+var fs = require('fs');
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
@@ -219,4 +221,10 @@ app.post('/joinTeam', (req, res) => {
     })
 })
 
-app.listen(port);
+https.createServer({
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.cert')
+  }, app)
+  .listen(3000, function () {
+    console.log('Example app listening on port 3000! Go to https://localhost:3000/')
+})
