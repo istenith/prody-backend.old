@@ -2,12 +2,12 @@
   "name": "site",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon -L app.js"
+    "start": "nodemon -L server.js"
   },
-  "author": "Parth Pant",
+  "author": "abhayonlyone@gmail.com",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.7",
