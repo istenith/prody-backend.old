@@ -2,12 +2,32 @@ html
     head
         title=title
         style(type="text/css").
+            @import url('https://fonts.googleapis.com/css?family=Kulim+Park&display=swap');
             body{
                 background : #101010;
                 text-align : center;
                 color : #00ff00;
+                padding: 50px;
+                font-family: 'Kulim Park', sans-serif;
+            }
+            .logos{
+                display:flex;
+                text-align:center;
+                justify-content:center;
+            }
+            .logo{
+                margin: 5px 15px;
+            }
+            img{
+                height:120px;
+                width:120px;
             }
     body 
+        .logos
+            .logo
+                img(src='imgs/pg.svg') 
+            .logo
+                img(src='imgs/ISTE_hollow.svg') 
         h2 Your team "#{name}" is now registered
         h3 The team Id is
         h1(style = 'color : white') #{id}
