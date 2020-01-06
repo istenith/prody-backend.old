@@ -24,37 +24,40 @@ mongoose.set('useUnifiedTopology', true);
 //     }
 // }
 
-var transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  service: 'gmail',
-  auth: {
-    user: config.email,
-    pass: config.pw,
-  },
-});
+// var transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   service: 'gmail',
+//   auth: {
+//     user: config.email,
+//     pass: config.pw,
+//   },
+// });
 //Email Template
-const email = new Email({
-  message: {
-    from: 'Team ISTE',
-  },
-  // uncomment below to send emails in development/test env:
-  send: true,
-  preview: false,
-  transport: transporter,
-});
+// const email = new Email({
+//   message: {
+//     from: 'Team ISTE',
+//   },
+//   // uncomment below to send emails in development/test env:
+//   send: true,
+//   preview: false,
+//   transport: transporter,
+// });
 
 //loading models
 var User = require('./models/user');
 var Team = require('./models/team');
 var Event = require('./models/event');
 
+// loading modules
+const signalFrontend = require('./signals');
+
 //hosting the front end
 var app = new express();
 
 //coneectiong to backend
-mongoose.connect('mongodb://localhost/myDb', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost/prodyDB', { useNewUrlParser: true });
 
 var db = mongoose.connection;
 db.on('error', () =>
@@ -63,12 +66,12 @@ db.on('error', () =>
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+// app.use(express.static('public'));
 
 app.set('view engine', 'pug');
 
 app.post('/regPlayer', (req, res) => {
-  var data = new User(req.body);
+  const data = new User(req.body);
   var mailid;
 
   //////validation code
@@ -86,40 +89,59 @@ app.post('/regPlayer', (req, res) => {
               .save()
               .then((item) => {
                 mailid = item._id;
-                res.render('register', {
-                  title: 'User Registration',
-                  id: item._id,
-                });
                 console.log(item);
+
+                res.redirect(
+                  signalFrontend({
+                    type: 'player-registered',
+                    name: item.name,
+                  }),
+                );
+                // res.render('register', {
+                //   title: 'User Registration',
+                //   id: item._id,
+                // });
               })
-              .then(() => {
-                email.send({
-                  template: path.join(__dirname, 'emails', 'user'),
-                  message: {
-                    to: data.email,
-                  },
-                  locals: {
-                    id: mailid,
-                    name: data.name,
-                  },
-                });
-              })
-              .then(() => console.log('email sent'))
+              // .then(() => {
+              //   email.send({
+              //     template: path.join(__dirname, 'emails', 'user'),
+              //     message: {
+              //       to: data.email,
+              //     },
+              //     locals: {
+              //       id: mailid,
+              //       name: data.name,
+              //     },
+              //   });
+              // })
+              // .then(() => console.log('email sent'))
               .catch((err) => console.log(err));
           }
         });
       } else {
-        res.render('error', {
-          title: 'Error',
-          message: 'password and conformation password must be the same',
-        });
+        res.redirect(
+          signalFrontend({
+            type: 'error',
+            error: 'password and conformation password different',
+          }),
+        );
+        // res.render('error', {
+        //   title: 'Error',
+        //   message: 'password and conformation password must be the same',
+        // });
       }
     } else {
       //res.send("The email has already been registered");
-      res.render('error', {
-        title: 'Error',
-        message: 'The email has already been registered',
-      });
+      res.redirect(
+        signalFrontend({
+          type: 'error',
+          error: 'email already registered',
+        }),
+      );
+      // res.render('error', {
+      //   title: 'Error',
+      //   message: 'The email has already been registered',
+      // });
     }
   });
 });
@@ -137,10 +159,16 @@ app.post('/regTeam', (req, res) => {
     if (err) {
       consolse.log(err);
     } else if (userDoc == null) {
-      res.render('error', {
-        title: 'Error',
-        message: 'The team leader email is not registered',
-      });
+      res.redirect(
+        signalFrontend({
+          type: 'error',
+          error: 'Your email is not registered',
+        }),
+      );
+      // res.render('error', {
+      //   title: 'Error',
+      //   message: 'The team leader email is not registered',
+      // });
     } else {
       bcrypt.compare(recieved_data.leader_pw, userDoc.pw, (err, resp) => {
         if (err) {
@@ -152,37 +180,50 @@ app.post('/regTeam', (req, res) => {
             if (err) {
               console.log(err);
             } else if (participationFlag == true) {
-              res.render('error', {
-                title: 'Error',
-                message: 'Team leader has already registered for this event',
-              });
+              res.redirect(
+                signalFrontend({
+                  type: 'error',
+                  error: 'You have already registered for this event',
+                }),
+              );
+              // res.render('error', {
+              //   title: 'Error',
+              //   message: 'Team leader has already registered for this event',
+              // });
             } else {
               data.members.push(userDoc._id);
               var team = new Team(data);
-              var tid;
               team
                 .save()
                 .then((item) => {
                   tid = item._id;
-                  res.render('teamRegister', {
-                    title: 'Team Registration',
-                    id: item._id,
-                    name: item.name,
-                  });
+                  res.redirect(
+                    signalFrontend({
+                      type: 'team-registered',
+                      id: item._id,
+                      name: item.name,
+                      event: item.event,
+                    }),
+                  );
+                  // res.render('teamRegister', {
+                  //   title: 'Team Registration',
+                  //   id: item._id,
+                  //   name: item.name,
+                  // });
                 })
-                .then(() => {
-                  email.send({
-                    template: path.join(__dirname, 'emails', 'team'),
-                    message: {
-                      to: userDoc.email,
-                    },
-                    locals: {
-                      Tid: tid,
-                      Tname: data.name,
-                    },
-                  });
-                })
-                .then(() => console.log('email sent'))
+                // .then(() => {
+                //   email.send({
+                //     template: path.join(__dirname, 'emails', 'team'),
+                //     message: {
+                //       to: userDoc.email,
+                //     },
+                //     locals: {
+                //       Tid: tid,
+                //       Tname: data.name,
+                //     },
+                //   });
+                // })
+                // .then(() => console.log('email sent'))
                 .catch((err) => console.log(err));
 
               Event.findOneAndUpdate(
@@ -198,10 +239,16 @@ app.post('/regTeam', (req, res) => {
             }
           });
         } else {
-          res.render('error', {
-            title: 'Error',
-            message: 'Invalid Team Leader Password',
-          });
+          res.redirect(
+            signalFrontend({
+              type: 'error',
+              error: 'Invalid Password',
+            }),
+          );
+          // res.render('error', {
+          //   title: 'Error',
+          //   message: 'Invalid Team Leader Password',
+          // });
         }
       });
     }
@@ -215,10 +262,16 @@ app.post('/joinTeam', (req, res) => {
     if (err) {
       console.log(err);
     } else if (userDoc == null) {
-      res.render('error', {
-        title: 'Error',
-        message: 'This email is not registered',
-      });
+      res.redirect(
+        signalFrontend({
+          type: 'error',
+          error: 'Your email is not registered',
+        }),
+      );
+      // res.render('error', {
+      //   title: 'Error',
+      //   message: 'This email is not registered',
+      // });
     } else {
       bcrypt.compare(recieved_data.pw, userDoc.pw, (err, resp) => {
         if (err) {
@@ -237,60 +290,92 @@ app.post('/joinTeam', (req, res) => {
                 if (err) {
                   console.log(err);
                 } else if (participationFlag == true) {
-                  res.render('error', {
-                    title: 'Error',
-                    message: 'You have already registered for this event',
-                  });
+                  res.redirect(
+                    signalFrontend({
+                      type: 'error',
+                      error: 'Your email is not registered',
+                    }),
+                  );
+                  // res.render('error', {
+                  //   title: 'Error',
+                  //   message: 'You have already registered for this event',
+                  // });
                 } else {
                   if (teamDoc.members.length < limit) {
                     teamDoc.members.push(userDoc._id);
                     eventDoc.participants.push(userDoc._id);
                     teamDoc.save();
                     eventDoc.save();
-                    res.render('joinTeam', {
-                      title: 'Done!',
-                      team: teamDoc.name,
-                    });
+
+                    res.redirect(
+                      signalFrontend({
+                        type: 'joined-team',
+                        name: teamDoc.name,
+                      }),
+                    );
+                    // res.render('joinTeam', {
+                    //   title: 'Done!',
+                    //   team: teamDoc.name,
+                    // });
                     User.findOne(
                       { id: teamDoc.members[0].email },
                       (err, lead) => {
-                        email
-                          .send({
-                            template: path.join(
-                              __dirname,
-                              'emails',
-                              'memberJoin',
-                            ),
-                            message: {
-                              to: lead.email,
-                            },
-                            locals: {
-                              team: teamDoc.name,
-                              member: userDoc.name,
-                              event: teamDoc.event,
-                            },
-                          })
-                          .then(() => console.log('email sent'))
-                          .catch((err) => console.log(err));
+                        console.log('Email not sent to Leader');
+                        // email
+                        //   .send({
+                        //     template: path.join(
+                        //       __dirname,
+                        //       'emails',
+                        //       'memberJoin',
+                        //     ),
+                        //     message: {
+                        //       to: lead.email,
+                        //     },
+                        //     locals: {
+                        //       team: teamDoc.name,
+                        //       member: userDoc.name,
+                        //       event: teamDoc.event,
+                        //     },
+                        //   })
+                        //   .then(() => console.log('email sent'))
+                        //   .catch((err) => console.log(err));
                       },
                     );
                   } else {
-                    res.render('error', {
-                      title: 'Error',
-                      message: 'Max number of members reached',
-                    });
+                    res.redirect(
+                      signalFrontend({
+                        type: 'error',
+                        error: 'Max number of members reached',
+                      }),
+                    );
+                    // res.render('error', {
+                    //   title: 'Error',
+                    //   message: 'Max number of members reached',
+                    // });
                   }
                 }
               });
             } else {
-              res.render('error', {
-                title: 'Error',
-                message: 'Invalid Team Id',
-              });
+              res.redirect(
+                signalFrontend({
+                  type: 'error',
+                  error: 'Invalid Team Id',
+                }),
+              );
+              // res.render('error', {
+              //   title: 'Error',
+              //   message: 'Invalid Team Id',
+              // });
             }
           });
         } else {
-          res.render('error', { title: 'Error', message: 'Invalid Password' });
+          // res.render('error', { title: 'Error', message: 'Invalid Password' });
+          res.redirect(
+            signalFrontend({
+              type: 'error',
+              error: 'Invalid Team Id',
+            }),
+          );
         }
       });
     }
