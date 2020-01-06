@@ -7,4 +7,4 @@ const signalFrontend = (options) => {
   return frontEndHandlingURL + new URLSearchParams(options).toString();
 };
 
-module.exports = { signalFrontend };
+module.exports = signalFrontend;
