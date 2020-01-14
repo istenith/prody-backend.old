@@ -1,17 +1,26 @@
 var mongoose = require('mongoose');
-var shortid = require('shortid');
 
-var userScheema = new mongoose.Schema({
-    _id : {
-        type : String,
-        default : shortid.generate
+var userScheema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    name : String,
-    phone : Number,
-    email : String,
-    pw : String
-},{versionKey : false});
+    phone: {
+      type: Number,
+      required: true,
+    },
+    email: {
+      type: String,
+      req: true,
+    },
+    password: {
+      type: String,
+      req: true,
+    },
+    teams: [String],
+  },
+  { versionKey: false },
+);
 
-var User = new mongoose.model('user',userScheema);
-
-module.exports = User;
+module.exports = new mongoose.model('user', userScheema);
