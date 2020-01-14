@@ -4,11 +4,11 @@ const { check, validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const config = require('./config');
+const config = require('../config');
 
-const User = require('../models/User');
+const User = require('../models/user');
 const Team = require('../models/team');
-const Event = require('./models/event');
+const Event = require('../models/event');
 
 const emailer = require('../helpers/emailer');
 
@@ -247,3 +247,4 @@ router.post('/join-team', [], (req, res) => {
     }
   });
 });
+module.exports = router;

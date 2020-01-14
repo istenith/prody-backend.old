@@ -4,9 +4,9 @@ const { check, validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const config = require('./config');
+const config = require('../config');
 
-const User = require('../models/User');
+const User = require('../models/user');
 
 /**
  * @method - POST
@@ -16,8 +16,9 @@ const User = require('../models/User');
 
 router.post(
   '/checkmeout',
-  [check('email', 'Please enter a valid email')],
-  async (res, req) => {
+  [check('email', 'Please enter a valid email').isEmail()],
+  async (req, res) => {
+	  const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         error: 'Invalid Email',
